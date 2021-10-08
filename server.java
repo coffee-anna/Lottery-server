@@ -1,23 +1,16 @@
 package lottery;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
-
 
 public class server {
 	static int numberOfTickets = 10000;
@@ -29,46 +22,44 @@ public class server {
 		random.getWinTickets(numberOfTickets);
 	}
 	
-	public static String[] findbestMatch(String clientMessageReceived)
-	{
-		//String bestMatch;
-		int[] ticketMatches;
-		ticketMatches = new int[numberOfTickets];
-		FileInputStream tickets;
-		
+	public static String findbestMatch(String[] clientMessageReceived)
+	{		
 		levenstein_distance match;
 		match = new levenstein_distance();
 		String path = "/Volumes/Transcend/Для учебы/Программирование/eclipse/java/server lottery/src/lottery/tickets";
-			
-		try {
-			tickets = new FileInputStream(path);
-				for (int i = 0; i < numberOfTickets; i++) {
-					String line = tickets.readNBytes(10).toString();
-				}
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		
-		
-		//find max resemblance number
-		int bestMatch = Arrays.stream(ticketMatches).min().getAsInt();
-		
 		List<String> bestMatches = new ArrayList<String>();
-		try {
-			tickets = new FileInputStream(path);
-			for (int i = 0; i < numberOfTickets; i++) {
-	        	if (ticketMatches[index++] == bestMatch)
-	        		bestMatches.add(line);  
-	        	System.out.println(line);
-	        };	
+		
+		
+		try(BufferedReader br = new BufferedReader(new FileReader(path))) 
+		{
+		    int minChanges = 10;
+
+		    while (index++ != numberOfTickets) {
+		    	String line = br.readLine();
+		    	int res = match.compute_Levenshtein_distanceDP(clientMessageReceived, line.split(" "));
+		    	if (res == minChanges) {
+					bestMatches.add(line);
+				}
+				else if (res < minChanges) {
+					minChanges = res;
+					bestMatches.clear();
+					bestMatches.add(line);
+				}
+				
+		    }
+		    index = 0;
+		} 
+		
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
 		}
 		
+		String res = String.join("\nmatch: ", bestMatches);
 		
-		return (String[])bestMatches.toArray();
-		
+		return res;		
 	}
 	
 	public static void main(String[] args)
@@ -91,16 +82,17 @@ public class server {
 			sois = new ObjectInputStream(clientAccepted.getInputStream());
 			soos = new ObjectOutputStream(clientAccepted.getOutputStream());
 			String clientMessageReceived=(String)sois.readObject();
+			String[] clientMessage = clientMessageReceived.split(" ");
 			
 			if(!clientMessageReceived.equals("quite"))
 			{
 				System.out.println("message received: " + clientMessageReceived);
-				String[] bestMatch = findbestMatch(clientMessageReceived);
-				System.out.println(Arrays.toString(bestMatch));
-				String clientMessage = bestMatch.toString();
-				System.out.println("best match: " + clientMessage);
-				System.out.println(clientMessage);
-				soos.writeObject(clientMessage);				
+				String bestMatch = findbestMatch(clientMessage);
+				if (bestMatch == null)
+					System.out.println("\ntry enother ticket :(");
+				else
+					System.out.println("\nbest match: " + bestMatch);
+				soos.writeObject(bestMatch);				
 			}
 		}		
 		catch(Exception e) {

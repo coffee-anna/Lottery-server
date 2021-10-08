@@ -13,6 +13,7 @@ public class client {
 			Socket clientSocket = new Socket("127.0.0.1", 2525);
 			System.out.println("connection established...");
 			BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+			
 			ObjectOutputStream coos = new ObjectOutputStream(clientSocket.getOutputStream());
 			ObjectInputStream cois = new ObjectInputStream(clientSocket.getInputStream());
 			
@@ -25,8 +26,7 @@ public class client {
 				System.out.println("~checking~: " + clientMessage);
 				System.out.println("----------------------------");
 				System.out.println("your ticket matches the best with: ");
-				String result = (String)cois.readObject();
-				System.out.println(result);
+				System.out.println((String)cois.readObject());
 			}
 						
 			coos.close();
