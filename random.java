@@ -11,7 +11,7 @@ public class random {
 		String lineSeparator = System.getProperty("line.separator");
 		
 		try {
-			tickets = new FileOutputStream("/Volumes/Transcend/Для учебы/Программирование/eclipse/java/server lottery/src/lottery/tickets");
+			tickets = new FileOutputStream("/eclipse/java/server lottery/src/lottery/tickets");
 			for (int i = 0; i < num; i++) {
 				for (int j = 0; j < 10; j++) {
 					try {
